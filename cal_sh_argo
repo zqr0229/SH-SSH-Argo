@@ -1,0 +1,52 @@
+
+
+nan_num=99999.0;
+mono_depth=1000;%单调的最深深度
+strf_steric_height_pre=900
+for i =1:length(argolat)
+    argo_profile_num=i;
+
+    argo_file=(['E:\data\ARGO\for_num\',num2str(id(argo_profile_num)),'\',num2str(id(argo_profile_num)),'_prof.nc'])
+    Argo_tem=ncread(argo_file,'TEMP_ADJUSTED')
+    Argo_sal=ncread(argo_file,'PSAL_ADJUSTED')
+    Argo_pre=ncread(argo_file,'PRES_ADJUSTED')
+    Argo_time=ncread(argo_file,'JULD')
+    Argo_tem=Argo_tem';
+    Argo_sal=Argo_sal';
+    Argo_pre=Argo_pre';
+    for i_argo=1:length(Argo_time)
+        
+        if abs(argotime(argo_profile_num)-Argo_time(i_argo))<0.0001 
+            Argo_yz_tem= Argo_tem(i_argo,:)
+            Argo_yz_sal=Argo_sal(i_argo,:)    
+            Argo_yz_pre=Argo_pre(i_argo,:)
+            Argo_yz_tem( find(Argo_yz_tem==nan_num) )=nan;   
+            Argo_yz_sal( find(Argo_yz_sal==nan_num) )=nan;    
+            Argo_yz_pre( find(Argo_yz_pre==nan_num) )=nan;
+            Argo_yz_pre_mon=monotonicing_stand(Argo_yz_pre,Argo_yz_pre,mono_depth);
+            Argo_yz_tem_mon=monotonicing_stand(Argo_yz_tem,Argo_yz_pre,mono_depth);
+            Argo_yz_sal_mon=monotonicing_stand(Argo_yz_sal,Argo_yz_pre,mono_depth);
+            if max(Argo_yz_pre)>900
+                Argo_yz_abs_sal_mon = gsw_SA_from_SP(Argo_yz_sal_mon, Argo_yz_pre_mon,argolon(argo_profile_num), argolat(argo_profile_num));
+                Argo_yz_potential_tem_mon = gsw_pt_from_t(Argo_yz_abs_sal_mon,Argo_yz_tem_mon,Argo_yz_pre_mon);
+                Argo_yz_conservative_tem_mon=gsw_CT_from_pt(Argo_yz_abs_sal_mon,Argo_yz_potential_tem_mon);
+                %strf_steric_height_pre=900
+                Argo_yz_strf_steric_height=gsw_geo_strf_steric_height(Argo_yz_abs_sal_mon,Argo_yz_conservative_tem_mon,Argo_yz_pre_mon,strf_steric_height_pre);
+                SH=[SH,Argo_yz_strf_steric_height(1)]
+                realdata_argotime=[realdata_argotime,argotime(argo_profile_num)];
+                realdata_avisotime=[realdata_avisotime,avisotime(argo_profile_num)];
+                realdata_argolat=[realdata_argolat,argolat(argo_profile_num)];
+                realdata_argolon=[realdata_argolon,argolon(argo_profile_num)];
+                realdata_avisolat=[realdata_avisolat,avisolat(argo_profile_num)];
+                realdata_avisolon=[realdata_avisolon,avisolon(argo_profile_num)];
+                realdata_sla=[realdata_sla,avisosla(argo_profile_num)];
+                realdata_adt=[realdata_adt,avisoadt(argo_profile_num)];
+                realdata_id=[realdata_id,id(argo_profile_num)];
+            end
+        end
+        
+    end
+    
+end
+
+save('E:\Python\sh-adt-argo\SH_test.mat','realdata_id','realdata_argotime', 'realdata_avisotime','realdata_argolat', 'realdata_argolon','realdata_avisolat','realdata_avisolon','realdata_sla', 'realdata_adt','SH')
