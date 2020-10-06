@@ -1,5 +1,5 @@
-%Ã¿Ò»¸öargoµãÑ¡ÔñÒ»¸ö×î½üµÄaviso ¼ÆËãargoµãµÄSH
-load ('E:\Python\sh-adt-argo\argo_in_alongtrack_test.mat')
+%æ¯ä¸€ä¸ªargoç‚¹é€‰æ‹©ä¸€ä¸ªæœ€è¿‘çš„aviso è®¡ç®—argoç‚¹çš„SH
+load ('E:\Python\sh-adt-argo\argo_in_alongtrack_test.mat')%å°†Argoå’ŒAvisoæ•°æ®åŒ¹é…åçš„æ•°æ®å­˜å‚¨æ–‡ä»¶
 real_data=[]
 SH=[]
 realdata_argotime=[]
@@ -11,7 +11,7 @@ realdata_avisolon=[]
 realdata_sla=[]
 realdata_adt=[]
 realdata_id=[]
-for i_1=1:length(id)%ÏàÍ¬argoµã²»Í¬
+for i_1=1:length(id)%ç›¸åŒargoç‚¹ä¸åŒ
     
     sametime=[i_1]
     d=(argolat(i_1)-avisolat(i_1))^2+(argolon(i_1)-avisolon(i_1))^2
@@ -42,7 +42,7 @@ for i_1=1:length(id)%ÏàÍ¬argoµã²»Í¬
 end
 
 nan_num=99999.0;
-mono_depth=1000;%µ¥µ÷µÄ×îÉîÉî¶È
+mono_depth=1000;%å•è°ƒçš„æœ€æ·±æ·±åº¦
 strf_steric_height_pre=900
 for i =1:length(real_data)
     argo_profile_num=real_data(i);
