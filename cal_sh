@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr 29 17:40:50 2020
+
+@author: qianran
+"""
+
+
+import numpy as np
+import scipy.io as scio
+import matplotlib.pyplot as plt
+from scipy import signal
+from scipy import integrate
+import seawater
+import re
+import os
+
+rootdir = r"E:\\SCI2result\\2013SCS\\"
+filename = os.listdir(rootdir)
+for file in range(len(filename)): 
+    match=re.search('..........scs.mat',filename[file])
+    if match:
+        path="E:\\SCI2result\\2013SCS\\%s"%filename[file]
+        #path='/Users/qianran/Documents/data/HYCOM/SCS/small/2014010600scssmall.mat'
+        
+        time=scio.loadmat(path)['time']
+        u=scio.loadmat(path)['u']
+        v=scio.loadmat(path)['v']
+        temp=scio.loadmat(path)['temp']
+        salt=scio.loadmat(path)['salt']
+        depth=scio.loadmat(path)['depth']
+        lat=scio.loadmat(path)['lat']
+        lon=scio.loadmat(path)['lon']
+        ssh=scio.loadmat(path)['ssh']
+        SH=np.zeros(shape=(len(lon),len(lat)))
+        
+        #reference_p=0
+        #p=np.zeros(shape=(len(lon),len(lat),len(depth)))
+        #depth_all=np.zeros(shape=(len(lon),len(lat),len(depth)))
+        # ============若数据无空值可以使用=================================================================
+        # 
+        # for i_lon in range(0,len(lon)):
+        #     for i_lat in range(0,len(lat)):
+        #         point_lat=lat[i_lat]
+        #         point_depth=depth#得到每层深度
+        #         point_p=seawater.pres(point_depth,point_lat)#得到每层深压强
+        #         p[i_lon,i_lat,:]=point_p[:,0]
+        #         depth_all[i_lon,i_lat,:]=point_depth[:,0]
+        #         
+        #         
+        # density=seawater.pden(salt,temp,p)
+        # 
+        # eq=(density-1025)/1025
+        # 
+        # SH=-np.trapz(eq, depth_all,axis=2)
+        # =============================================================================
+        
+        
+        for i_lon in range(0,len(lon)):
+             for i_lat in range(0,len(lat)):
+                point_depth=depth
+                point_lon=lon[i_lon]
+                point_lat=lat[i_lat]
+                point_tem=temp[i_lon,i_lat,:]
+                ind=np.argwhere(np.isnan(point_tem))
+
+                if any(ind)==False:
+                    index=40
+                else:
+                    index=min(ind)[0]
+                
+                
+                point_tem=point_tem[0:index]
+                point_sal=salt[i_lon,i_lat,0:index]
+                point_depth=point_depth[0:index]
+                point_p=seawater.pres(point_depth,point_lat)#得到每层深压强
+                point_density=seawater.pden(point_sal,point_tem,point_p[:,0])#计算每层位密度
+                eq=[]
+                eq=(point_density-1025)/1025#eq.append((point_density[i_num]-1025)/1025)
+                sh=np.trapz(eq,point_depth[:,0])
+        
+        
+                SH[i_lon,i_lat]=-sh
+                
+                
+        scio.savemat("E:\\SCI2result\\2013SCS\\depthest\\%s"%filename[file],{'SH':SH,'v':v,'time':time,'u':u,'ssh':ssh,'lon':lon,'lat':lat})
+
+                    
+
+        #############设置统一参考面                    
+        '''if index>32:##30:800  32:1000  35:2000  37:3000 38:4000  39:5000
+                    index=32
+                    point_tem=point_tem[0:index]
+                    point_sal=salt[i_lon,i_lat,0:index]
+                    point_depth=point_depth[0:index]
+                    point_p=seawater.pres(point_depth,point_lat)#得到每层深压强
+                    point_density=seawater.pden(point_sal,point_tem,point_p[:,0])#计算每层位密度
+                    eq=[]
+                    eq=(point_density-1025)/1025#eq.append((point_density[i_num]-1025)/1025)
+                    sh=np.trapz(eq,point_depth[:,0])
+            
+            
+                    SH[i_lon,i_lat]=-sh
+                else:
+                    SH[i_lon,i_lat]=0
+       '''
+            
+                #sh=0
+                #for i_int in range(1,63):
+                #    sh=sh+0.5*(eq_point[i_int]+eq_point[i_int+1])*abs(point_depth[i_int+1]-point_depth[i_int])
+        
+        #scio.savemat('/Users/qianran/Documents/data/HYCOM/2015SCS/small/SH_1000/%s'%filename[file],{'SH':SH,'v':v,'time':time,'u':u,'ssh':ssh,'lon':lon,'lat':lat})
+        
+        
+        
+        
+        
+        
